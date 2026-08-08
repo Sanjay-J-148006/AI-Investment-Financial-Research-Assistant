@@ -46,20 +46,6 @@ AlphaVest Capital is a financial consulting and investment advisory firm. Financ
 
 ---
 
-## 💼 Resume & Portfolio Highlights (Copy & Paste)
-
-### 📌 Resume Bullet Points for AI / LLM Engineer Roles
-- **Architected an autonomous multi-agent financial research platform** using **LangChain (LCEL)**, **Groq (LLaMA-3.3-70B)**, and **Streamlit**, reducing equity analyst research workflow duration by **85%**.
-- **Implemented dynamic intent routing** via `RunnableBranch` and concurrent multi-company equity research via `RunnableParallel`, enabling real-time comparative stock analysis.
-- **Engineered an enterprise RAG pipeline** leveraging **FAISS/ChromaDB** vector stores and **PyPDF** to ingest 10-K/10-Q annual reports, performing forensic accounting Q&A with citation metadata.
-- **Developed structured Pydantic output parsers** (`InvestmentReport`) for automated report synthesis and integrated **SQLite persistent memory** for tracking long-term client risk mandates.
-- **Integrated LLMOps telemetry and safety guardrails**, including input sanitization, token usage & cost estimation, interactive **Plotly** charts, and SEC/FINRA compliance disclaimers.
-
-### 🎤 Interview Pitch
-> *"I built AlphaVest AI, an autonomous multi-agent platform for equity research. I used LangChain's Expression Language (LCEL) to build a coordinator router (`RunnableBranch`) that dynamically classifies user intent and routes to sub-agents: a Live News Agent (DuckDuckGo), an Equity Research Agent (Wikipedia + Search), a PDF RAG Agent (FAISS/ChromaDB), and a Parallel Comparison Agent (`RunnableParallel`). For output validation, I enforced Pydantic schemas, and for state persistence, I used SQLite. I also built LLMOps telemetry tracking execution latency and token cost for every query."*
-
----
-
 ## 🛠️ Feature & Module Breakdown
 
 | Feature / Module | Description | Technical Primitive |
@@ -140,7 +126,7 @@ OK
 ```text
 AI-Investment-Financial-Research-Assistant/
 ├── app.py                        # Streamlit Intelligence Workspace UI Entry Point
-├── README.md                     # Single Consolidated Master Documentation & Portfolio Guide
+├── README.md                     # Single Consolidated Master Documentation & Project Guide
 ├── requirements.txt              # Python project dependencies
 ├── .env.example                  # Environment configuration template
 ├── test_system.py                # System unit test suite
