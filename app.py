@@ -118,7 +118,8 @@ if "active_investor" not in st.session_state:
 
 # --- SIDEBAR CONFIGURATION ---
 with st.sidebar:
-    st.markdown("### 🖥️ **Intelligence Workspace**")
+    st.markdown("### 📈 **AlphaVest**")
+    st.markdown("##### AI Investment & Financial Research Assistant")
     
     workspace_selection = st.radio(
         label="Workspace Navigation",
