@@ -11,12 +11,16 @@ def get_email_agent_response(
     api_key: str = None,
     gmail_user: str = "",
     gmail_password: str = "",
-    attachment_path: str = ""
+    attachment_path: str = "",
+    **kwargs
 ) -> str:
     """
     Email Agent that parses recipient email, composes a professional cover message, and dispatches the email.
     Includes robust exception handling for LLM calls and SMTP dispatch.
     """
+    g_user = gmail_user or kwargs.get("gmail_user", "") or os.getenv("GMAIL_USER", "")
+    g_pwd = gmail_password or kwargs.get("gmail_password", "") or os.getenv("GMAIL_APP_PASSWORD", "")
+
     # Extract email address if present in query
     match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', query)
     recipient = match.group(0) if match else "client@alphavest.com"
@@ -45,17 +49,14 @@ def get_email_agent_response(
         )
     
     # Send email via tool
-    user = gmail_user or os.getenv("GMAIL_USER", "")
-    pwd = gmail_password or os.getenv("GMAIL_APP_PASSWORD", "")
-    
     try:
         tool_status = send_email_report.invoke({
             "recipient_email": recipient,
             "subject": "AlphaVest Capital — Investment Research Briefing",
             "body": email_draft,
             "attachment_path": attachment_path,
-            "gmail_user": user,
-            "gmail_password": pwd
+            "gmail_user": g_user,
+            "gmail_password": g_pwd
         })
     except Exception as e:
         tool_status = f"❌ Dispatch error: {str(e)}"
