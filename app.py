@@ -504,18 +504,21 @@ elif workspace_selection == "📋 Investment Reports":
         attach_pdf = st.checkbox("Attach Styled PDF Report to Email", value=True)
         
         if st.button("🚀 Dispatch Email Report", type="primary", use_container_width=True):
-            pdf_path_to_attach = export_report_as_pdf(st.session_state.last_report_text) if attach_pdf else ""
-            with st.spinner("Composing & Dispatching Executive Email..."):
-                e_out = get_email_agent_response(
-                    query=f"Send report to {recip}",
-                    last_report_text=st.session_state.last_report_text,
-                    provider=st.session_state.provider,
-                    api_key=st.session_state.api_key,
-                    gmail_user=st.session_state.gmail_user,
-                    gmail_password=st.session_state.gmail_password,
-                    attachment_path=pdf_path_to_attach
-                )
-                st.markdown(e_out)
+            try:
+                pdf_path_to_attach = export_report_as_pdf(st.session_state.last_report_text) if (attach_pdf and st.session_state.last_report_text) else ""
+                with st.spinner("Composing & Dispatching Executive Email..."):
+                    e_out = get_email_agent_response(
+                        query=f"Send report to {recip}",
+                        last_report_text=st.session_state.last_report_text,
+                        provider=st.session_state.provider,
+                        api_key=st.session_state.api_key,
+                        gmail_user=st.session_state.gmail_user,
+                        gmail_password=st.session_state.gmail_password,
+                        attachment_path=pdf_path_to_attach
+                    )
+                    st.markdown(e_out)
+            except Exception as ex:
+                st.error(f"⚠️ Email Dispatch Error: {str(ex)}")
 
 # --- WORKSPACE 9: INVESTOR MEMORY ---
 elif workspace_selection == "👤 Investor Memory":
