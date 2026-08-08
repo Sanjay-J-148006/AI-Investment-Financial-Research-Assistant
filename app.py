@@ -107,6 +107,12 @@ if "provider" not in st.session_state:
 if "api_key" not in st.session_state:
     st.session_state.api_key = os.getenv("GROQ_API_KEY", "")
 
+if "gmail_user" not in st.session_state:
+    st.session_state.gmail_user = os.getenv("GMAIL_USER", "")
+
+if "gmail_password" not in st.session_state:
+    st.session_state.gmail_password = os.getenv("GMAIL_APP_PASSWORD", "")
+
 if "active_investor" not in st.session_state:
     st.session_state.active_investor = existing_profiles[0]["name"] if existing_profiles else "Default Client"
 
@@ -201,7 +207,6 @@ if workspace_selection == "📊 Market Overview":
         
     st.divider()
     
-    # Interactive Plotly Market Chart
     st.plotly_chart(generate_stock_performance_chart("S&P 500 Benchmark", "Global Equity Indices"), use_container_width=True)
     
     st.divider()
@@ -253,7 +258,6 @@ elif workspace_selection == "🤖 AI Research Agent":
                     st.caption(f"🤖 **Routed Agent:** `{agent_name}`")
                     st.markdown(output_text)
                     
-                    # LLMOps Telemetry Bar
                     if telemetry:
                         with st.expander("⚡ Agent Execution Telemetry & Latency Trace"):
                             st.markdown(f"""
@@ -415,7 +419,7 @@ elif workspace_selection == "🧮 Financial Calculations":
 # --- WORKSPACE 8: INVESTMENT REPORTS ---
 elif workspace_selection == "📋 Investment Reports":
     st.markdown('<div class="workspace-header">📋 Investment Reports</div>', unsafe_allow_html=True)
-    st.markdown('<div class="workspace-sub">Sequential Pipeline: Research → Read PDF → Merge Info → Analyze → Structured Pydantic Report → Email</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workspace-sub">Sequential Pipeline: Research → Read PDF → Merge Info → Analyze → Structured Pydantic Report → Email Dispatch</div>', unsafe_allow_html=True)
     
     rep_target = st.text_input("Target Company", value="NVIDIA")
     
@@ -466,22 +470,52 @@ elif workspace_selection == "📋 Investment Reports":
             
     if st.session_state.last_report_text:
         st.divider()
-        st.subheader("📥 Export & Email Options")
+        st.subheader("📥 Export & Email Dispatch Center")
         
-        ex1, ex2, ex3 = st.columns(3)
+        ex1, ex2 = st.columns(2)
         with ex1:
             txt_p = export_report_as_txt(st.session_state.last_report_text)
             with open(txt_p, "rb") as f:
-                st.download_button("📄 Download TXT", data=f.read(), file_name="Investment_Report.txt", mime="text/plain", use_container_width=True)
+                st.download_button("📄 Download TXT Report", data=f.read(), file_name="Investment_Report.txt", mime="text/plain", use_container_width=True)
         with ex2:
             pdf_p = export_report_as_pdf(st.session_state.last_report_text)
             with open(pdf_p, "rb") as f:
-                st.download_button("📕 Download PDF", data=f.read(), file_name="Investment_Report.pdf", mime="application/pdf", use_container_width=True)
-        with ex3:
-            recip = st.text_input("Recipient Email", value="client@alphavest.com")
-            if st.button("📧 Dispatch Email Report", use_container_width=True):
-                e_out = get_email_agent_response(recip, last_report_text=st.session_state.last_report_text, provider=st.session_state.provider, api_key=st.session_state.api_key)
-                st.success(e_out)
+                st.download_button("📕 Download PDF Pitchbook", data=f.read(), file_name="Investment_Report.pdf", mime="application/pdf", use_container_width=True)
+        
+        st.divider()
+        st.subheader("📧 Dispatch Email Report to Client")
+        
+        with st.expander("🔑 Sender Gmail & Credentials Setup (Click to Expand)", expanded=(not bool(st.session_state.gmail_user and st.session_state.gmail_password))):
+            st.info("""
+            **How to Send Real Emails via Gmail in 30 Seconds:**
+            1. Enter your **Sender Gmail Address** (e.g. `yourname@gmail.com`).
+            2. Enter a **16-Character Gmail App Password**.
+               *Note: To create an App Password, go to your **Google Account -> Security -> 2-Step Verification -> App Passwords**, generate a password for 'Mail', and paste it here.*
+            """)
+            g_usr_in = st.text_input("Sender Gmail Address", value=st.session_state.gmail_user, placeholder="yourname@gmail.com")
+            g_pwd_in = st.text_input("16-Character Gmail App Password", value=st.session_state.gmail_password, type="password", placeholder="abcd efgh ijkl mnop")
+            if st.button("💾 Save Gmail Credentials"):
+                st.session_state.gmail_user = g_usr_in.strip()
+                st.session_state.gmail_password = g_pwd_in.strip()
+                st.success("Gmail credentials saved for this session!")
+                st.rerun()
+
+        recip = st.text_input("Recipient Email Address", value="client@alphavest.com")
+        attach_pdf = st.checkbox("Attach Styled PDF Report to Email", value=True)
+        
+        if st.button("🚀 Dispatch Email Report", type="primary", use_container_width=True):
+            pdf_path_to_attach = export_report_as_pdf(st.session_state.last_report_text) if attach_pdf else ""
+            with st.spinner("Composing & Dispatching Executive Email..."):
+                e_out = get_email_agent_response(
+                    query=f"Send report to {recip}",
+                    last_report_text=st.session_state.last_report_text,
+                    provider=st.session_state.provider,
+                    api_key=st.session_state.api_key,
+                    gmail_user=st.session_state.gmail_user,
+                    gmail_password=st.session_state.gmail_password,
+                    attachment_path=pdf_path_to_attach
+                )
+                st.markdown(e_out)
 
 # --- WORKSPACE 9: INVESTOR MEMORY ---
 elif workspace_selection == "👤 Investor Memory":
@@ -550,21 +584,29 @@ elif workspace_selection == "👤 Investor Memory":
 # --- WORKSPACE 10: SETTINGS ---
 elif workspace_selection == "⚙️ Settings":
     st.markdown('<div class="workspace-header">⚙️ System Settings</div>', unsafe_allow_html=True)
-    st.markdown('<div class="workspace-sub">Configure LLM model providers, API keys, and system diagnostics</div>', unsafe_allow_html=True)
+    st.markdown('<div class="workspace-sub">Configure LLM model providers, API keys, Gmail SMTP credentials, and diagnostics</div>', unsafe_allow_html=True)
     
     st.subheader("1. Active Model Provider")
     provider_choice = st.selectbox("Provider", ["Groq", "OpenAI", "Google Gemini"], index=0)
     st.session_state.provider = provider_choice.lower()
     if st.session_state.provider == "google gemini": st.session_state.provider = "google"
     
-    st.subheader("2. API Key String")
+    st.subheader("2. Groq / OpenAI API Key String")
     k_in = st.text_input("API Key", value=st.session_state.api_key, type="password")
-    if st.button("💾 Save Settings", type="primary"):
-        st.session_state.api_key = k_in
-        st.success("Settings saved successfully!")
+    
+    st.subheader("3. Gmail SMTP Dispatch Credentials")
+    st.caption("Required if you wish to dispatch emails to clients directly from the application.")
+    gm_u = st.text_input("Sender Gmail Address", value=st.session_state.gmail_user, placeholder="yourname@gmail.com")
+    gm_p = st.text_input("16-Character Gmail App Password", value=st.session_state.gmail_password, type="password", placeholder="abcd efgh ijkl mnop")
+    
+    if st.button("💾 Save All System Settings", type="primary"):
+        st.session_state.api_key = k_in.strip()
+        st.session_state.gmail_user = gm_u.strip()
+        st.session_state.gmail_password = gm_p.strip()
+        st.success("System & Gmail settings saved successfully!")
         
     st.divider()
-    st.subheader("3. System Architecture Diagnostic")
+    st.subheader("4. System Architecture Diagnostic")
     st.markdown("- **Router**: `RunnableBranch` in `agents/coordinator.py`")
     st.markdown("- **Parallel Agent**: `RunnableParallel` in `agents/comparison_agent.py`")
     st.markdown("- **Sequential Pipeline**: `RunnableLambda` chain in `chains/sequential_chain.py`")
